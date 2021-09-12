@@ -194,94 +194,21 @@ pyobjs_vtype_64 = { #Found info here: https://github.com/python/cpython/blob/3.6
             'ob_size': [16, ['long long']],
             'ob_digit': [24, ['unsigned int']]
         }],
-    '_PyEagerTensor1': [
-        152,
-        {
-            'ob_refcnt': [0, ['long long']],  # Py_ssize_t = ssize_t
-            'ob_type': [8, ['pointer', ['_PyTypeObject']]],  # struct _typeobject *
-            'unused': [16, ['void']],
-            'handle': [80, ['pointer', ['_TensorHandle']]],
-            'ob_id': [88, ['long long']],
-            'is_packed': [96, ['long long']],
-            'handle_data': [104, ['address']],
-            'tensor_shape': [112, ['address']],
-            'ob_status': [120, ['void']],
-            'context': [128, ['address']],
-            'weakreflist': [136, ['address']],
-            'ob_dict': [144, ['_PyDictObject1']],
-        }],
-    '_TensorHandle': [
-        336,
-        {
-            'vtable_ptr1': [0, ['address']],  # Py_ssize_t = ssize_t
-            'vtable_ptr2': [8, ['address']],
-            'dtype': [32, ['short']], #0x14
-            'random_fields': [36, ['void']],
-            'tensor_': [304, ['_Tensor1']]
-        }],
-    '_Iterator': [
-        40,
-        {
-            'next': [0, ['pointer', ['_Iterator']]],
-            'guard': [8, ['address']],
-            'name': [16, ['pointer', ['C_String']]],
-            'weird_int': [24, ['int']],
-            'tensorflow_var': [32, ['pointer', ['_TensorflowVar']]]
-        }],
-    '_TensorflowVar': [
-        72,
-        {
-            'vtable_ptr': [0, ['address']],
-            'mutex': [8, ['void']],
-            'tensor': [40, ['_Tensor1']]
-        }],
-    '_PyDimension1': [
-        32,
-        {
-            'ob_refcnt': [0, ['long long']],  # Py_ssize_t = ssize_t
-            'ob_type': [8, ['pointer', ['_PyTypeObject']]],  # struct _typeobject *
-            'ob_dim': [16, ['pointer', ['_PyLongObject1']]],
-            'model_ptr': [24, ['pointer', ['void']]]
-        }],
-    '_TensorShape1': [
-        32,
-        {
-            'ob_refcnt': [0, ['long long']],  # Py_ssize_t = ssize_t
-            'ob_type': [8, ['pointer', ['_PyTypeObject']]],  # struct _typeobject *
-            'ob_list': [16, ['pointer', ['_PyListObject1']]]
-        }],
-    'float32': [
-        4,
-        {
-            'ob_fval': [0, ['int']]
-        }],
-    '_ResourceHandleData': [
-        24,
-        {
-            'context_str': [0, ['pointer', ['C_String']]],
-            'device_name': [8, ['pointer', ['C_String']]],
-            'var_name': [16, ['pointer', ['C_String']]]
-        }],
-    '_TensorBuffer1': [
-        24,
-        {
-            'vtable_ptr': [0, ['pointer', ['address']]],  # ptr to vtable
-            'ob_refcnt': [8, ['long long']],
-            'data_': [16, ['pointer', ['float32']]]
-        }],
-    '_Tensor1': [
-        32,
-        {
-            'shape': [0, ['array', 8, ['unsigned short int']]],  
-            'num_elements': [16, ['long long']],
-            'buf_': [24, ['pointer', ['_TensorBuffer1']]]
-        }],
     '_WeakRef1': [
         24,
         {
             'ob_refcnt': [0, ['long long']],  # Py_ssize_t = ssize_t
             'ob_type': [8, ['pointer', ['_PyTypeObject']]],  # struct _typeobject *
             'buf_': [16, ['address']]
+        }],
+    '_PyByteObject1': [
+        24,
+        {
+            'ob_refcnt': [0, ['long long']],  # Py_ssize_t = ssize_t
+            'ob_type': [8, ['pointer', ['_PyTypeObject']]],  # struct _typeobject *
+            'ob_size': [16, ['long long']],
+            'align': [24, ['void']],
+            'buf_': [32, ['char']]
         }],
     '_PyObject1': [
         16,
@@ -725,100 +652,6 @@ class _PyBoolObject1(obj.CType):
         return self.ob_digit != 0
 
 
-class _PyEagerTensor1(obj.CType):
-    def is_valid(self):
-        return (self.ob_type.is_valid() and self.ob_type.dereference().is_valid()
-                and self.ob_type.dereference().name == "tensorflow.python.framework.ops.EagerTensor"
-                and self.ob_type.dereference().tp_basicsize == 152 and self.handle.dereference().is_valid())
-
-    @property
-    def val(self):
-        return self.ob_digit != 0
-
-
-class _TensorHandle(obj.CType):
-    def is_valid(self):
-        return (self.dtype == 14)
-
-
-class _Iterator(obj.CType):
-    def is_valid(self):
-        return (self.guard != 0 and self.tensorflow_var.dereference().is_valid())
-
-    @property
-    def val(self):
-        return self.name.dereference().val
-
-
-class _TensorflowVar(obj.CType):
-    def is_valid(self):
-        return self.vtable_ptr.is_valid()
-
-    @property
-    def val(self):
-        self.vtable_ptr
-
-
-class _PyDimension1(obj.CType):
-    def is_valid(self):
-        return (self.ob_type.is_valid() and self.ob_type.dereference().is_valid()
-                and "Dimension" in self.ob_type.dereference().name)
-
-    @property
-    def val(self):
-        return self.ob_dim.dereference().val
-
-
-class _TensorShape1(obj.CType):
-    def is_valid(self):
-        return (self.ob_type.is_valid() and self.ob_type.dereference().is_valid()
-                and "TensorShape" in self.ob_type.dereference().name)
-
-    @property
-    def val(self):
-        return self.ob_list.dereference().val
-
-
-class float32(obj.CType):
-    def is_valid(self):
-        curr = self.val
-        return isinstance(curr, float)
-
-    @property
-    def val(self):
-        return float(ctypes.c_float.from_buffer(ctypes.c_int(self.ob_fval)).value)
-
-
-class _ResourceHandleData(obj.CType):
-    def is_valid(self):
-        return ("device:CPU" in self.context_str.dereference().val 
-            and "localhost" == self.device_name.dereference().val)
-
-    @property
-    def val(self):
-        return self.var_name.dereference().val
-
-
-class _TensorBuffer1(obj.CType):
-    def is_valid(self):
-        return (self.vtable_ptr.is_valid() and self.vtable_ptr.dereference().is_valid()  
-                and self.ob_refcnt.is_valid() and self.data_.is_valid() and self.data_.dereference().is_valid())
-
-    @property
-    def val(self):
-        return self.data_
-
-
-class _Tensor1(obj.CType):
-    def is_valid(self):
-        return (self.num_elements.is_valid() and self.buf_.is_valid() 
-                and self.buf_.dereference().is_valid())
-
-    @property
-    def val(self):
-        return self.buf_.dereference().val
-
-
 class _WeakRef1(obj.CType):
     def is_valid(self):
         return (self.ob_type.is_valid() and self.ob_type.dereference().is_valid()
@@ -829,22 +662,34 @@ class _WeakRef1(obj.CType):
         return self.buf_
 
 
+class _PyByteObject1(obj.CType):
+    def is_valid(self):
+        return (self.ob_type.is_valid() and self.ob_type.dereference().is_valid()
+                and self.ob_type.dereference().name == "bytes")
+    
+    @property
+    def val(self):
+        ret = ""
+        print hex(int(self.ob_size)), "total bytes"
+        for i in range(self.ob_size + 1):
+            tmp = self.obj_vm.zread(self.obj_offset + 32 + i, 1)
+            if ord(tmp) == 0:
+                return ret
+            ret += tmp
+        return ret
+
+
 class _PyObject1(obj.CType):
     def get_type(self, s):
         pymap = ({
             "dict": "_PyDictObject1",
             "collections.OrderedDict": "_PyDictObject1",
-            "Tensor": "TorchParameter",
-            "Parameter": "TorchParameter",
             "int": "_PyLongObject1",
             "str": "_PyUnicodeString",
             "float": "_PyFloatObject1",
             "list": "_PyListObject1",
             "bool": "_PyBoolObject1",
             "tuple": "_PyTupleObject1",
-            "tensorflow.python.framework.ops.EagerTensor": "_PyEagerTensor1",
-            "Dimension": "_PyDimension1",
-            "TensorShape": "_TensorShape1",
             "weakref": "_WeakRef1"
         })
         if not pymap.has_key(s):
@@ -861,7 +706,7 @@ class _PyObject1(obj.CType):
             and self.ob_type.dereference().tp_dictoffset == 16):
             obj_string = "_PyInstanceObject1"
         tmp = obj.Object(obj_string, offset=self.obj_offset, vm=self.obj_vm)
-        if obj_string not in ["_PyEagerTensor1", "_PyInstanceObject1", "_PyObject1", "_PyDictObject1", "_TensorShape1", "TorchParameter"]:
+        if obj_string not in ["_PyInstanceObject1", "_PyObject1", "_PyDictObject1"]:
             return tmp.val
         elif obj_string == "_PyObject1" and tmp.ob_type.dereference().name == "NoneType":
             return None
@@ -869,7 +714,7 @@ class _PyObject1(obj.CType):
             return tmp
 
 
-class PythonClassTypes4(obj.ProfileModification):
+class PythonClassTypes5(obj.ProfileModification):
     """
     Profile modifications for Python class types.  Only Linux and Mac OS,
     on 64-bit systems, are supported right now.
@@ -896,17 +741,8 @@ class PythonClassTypes4(obj.ProfileModification):
             "_PyLongObject1": _PyLongObject1,
             "_PyListObject1": _PyListObject1,
             "_PyBoolObject1": _PyBoolObject1,
-            "_PyEagerTensor1": _PyEagerTensor1,
-            "_TensorHandle": _TensorHandle,
-            "_Iterator": _Iterator,
-            "_TensorflowVar": _TensorflowVar,
-            "_PyDimension1": _PyDimension1,
-            "_TensorShape1": _TensorShape1,
-            "float32": float32,
-            "_ResourceHandleData": _ResourceHandleData,
-            "_TensorBuffer1": _TensorBuffer1,
-            "_Tensor1": _Tensor1,
             "_WeakRef1": _WeakRef1,
+            "_PyByteObject1": _PyByteObject1,
             "_PyObject1": _PyObject1
         })
 
@@ -943,22 +779,6 @@ def extract_data(addr_space, num_elements, buf):
         ct += 1
 
     return ret
-
-
-def is_tensor_valid(actual_name, tensor, shape_list, tot_elements):
-    if not tensor.is_valid():
-        return False
-
-    if tensor.num_elements != tot_elements: 
-        print "num_elements is wrong:", int(tensor.num_elements), tot_elements
-        return False
-
-    for i in range(len(shape_list)):
-        if (shape_list[i] != int(tensor.shape[i])):
-            print "shape is wrong"
-            return False
-    
-    return True
 
 
 def scan_heap(task, addr_space, shape, anonvar_to_name):
@@ -1054,115 +874,9 @@ def bfs(model_root):
     return layers_ordered
 
 
-def get_anonvar(tensor_dict, addr_space):
-    """might be wrong tho
-
-    Returns variable name from Resource Handle Data
+def process_parameters(task, addr_space, key):
     """
-    
-    global recovered_c_structs
-    global recovered_python_objects
-
-    recovered_c_structs += 3
-    recovered_python_objects += 1
-
-    data_addr = tensor_dict['_handle'].handle.dereference().tensor_.buf_.dereference().data_
-    tmp = obj.Object("_ResourceHandleData",
-                            offset=data_addr,
-                            vm=addr_space)
-    anonvar = tmp.var_name.dereference().val
-    return anonvar
-
-
-def check_weights(task, out_dict):
-    """
-    Prints metrics about accuracy of weight recovery relative to ground truth
-    """
-    f = open("correct_weights_" + str(task.pid) + ".txt", "r")
-    correct_dump = json.load(f)
-
-    missing_weights = 0
-    missing_layers = 0
-    diff_weights = 0
-    sum_diff = 0
-    missing_arr = []
-    diff_layers = []
-
-    for layer in correct_dump['tensors']:
-        if (layer in out_dict['tensors']):
-            print (layer)
-            
-            correct_arr = correct_dump['tensors'][layer]
-            recovered_arr = out_dict['tensors'][layer]
-
-            diff_pos = []
-            
-            if (len(recovered_arr) != len(correct_arr)):
-                print "Shapes Different"
-            else:
-                for i in range(len(correct_arr)):
-                    if (recovered_arr[i] != correct_arr[i]):
-                        diff_pos.append(i)
-
-            if (len(diff_pos) == len(correct_arr)):
-                print "No Valid Tensors"
-            else:
-                print("{} weights different".format(len(diff_pos)))
-                print (diff_pos)
-                sum_diff += len(diff_pos)
-            if len(diff_pos) > 0:
-                diff_layers.append(layer)
-            print
-
-        else:
-            missing_layers += 1
-            missing_weights += len(correct_dump['tensors'][layer])
-            missing_arr.append(layer)
-
-    print ("Correct model_name: {}".format(correct_dump['model_name']))
-    print("Received model_name: {}".format(out_dict['model_name']))
-    print ("Correct num_elements: {}".format(correct_dump['num_elements']))
-    print ("Received num_elements: {}\n".format(out_dict['num_elements']))
-    print (len(diff_layers))
-    print (diff_layers)
-    print (sum_diff)
-    print ("{} layers not found".format(missing_layers))
-    print (missing_arr)
-    print ("{} out of {} found weights are different".format(sum_diff, correct_dump['num_elements'] - missing_weights))
-
-
-def export_weights(task, weights, tot_num_elements, export_path, alpha, name):
-    out_dict = {'model_name': name, 'num_elements': tot_num_elements, 'tensors': {}}
-    for key in weights:
-        out_dict['tensors'][key] = weights[key]
-
-    with open(export_path + "weights_" + str(task.pid) + "_" + str(int(alpha*100)) + ".txt", 'w') as f:
-        json.dump(out_dict, f)
-    
-    #check_weights(task, out_dict) # if ground truth weights available
-
-
-def export_offsets(task, tensor_offsets, export_path, alpha):
-    """
-    Write heap addresses and offsets of Tensor structs to file for rehosting
-    File format:
-        First line contains integer n and m, the number of heaps in process and the number of tensors respectively.
-        n lines follow containing addresses a and b, the start and end addresses of each heap respectively.
-        m lines follow containing the name of the tensor and its address.
-    """
-    f = open(export_path + "offsets_" + str(task.pid) + "_" + str(int(alpha*100)) + ".txt", 'w')
-    heaps = get_heaps(task)
-    f.write(str(len(heaps)) + " " + str(len(tensor_offsets)) + "\n")
-    for heap in heaps:
-        f.write(str(hex(heap.vm_start)) + " " + str(hex(heap.vm_end)) + "\n")
-    for name in tensor_offsets:
-        f.write(name + " " + str(hex(tensor_offsets[name])) + "\n")
-    f.close()
-
-
-def process_parameters(task, addr_space, model, export_path, alpha):
-    """
-    Extract shape and other hyperparameters of each slot variable in Python layer
+    Extract key __dict__ and returns raw bytes
     """
 
     global recovered_c_structs
@@ -1176,12 +890,12 @@ def process_parameters(task, addr_space, model, export_path, alpha):
     tot_num_elements = 0
     distinct_layers = set()
 
-    if model.ob_type.dereference().name == "FuncGraph":
-        all_layers = extract_func_graph(addr_space, model)
+    if key.ob_type.dereference().name == "FuncGraph":
+        all_layers = extract_func_graph(addr_space, key)
     else:
-        all_layers = bfs(model)
+        all_layers = bfs(key)
 
-    model_dict = model.in_dict.dereference().val
+    key_dict = key.in_dict.dereference().val
     recovered_python_objects += 2
 
     for layer_dict in all_layers:
@@ -1241,44 +955,27 @@ def process_parameters(task, addr_space, model, export_path, alpha):
 
     weights, addrs = scan_heap(task, addr_space, shape, anonvar_to_name)
 
-    print "MODEL SUMMARY"
-    for key in shape:
-        print key
-        print shape[key]
-        print
-
-    export_weights(task, weights, tot_num_elements, export_path, alpha, str(task.pid))
-    export_offsets(task, addrs, export_path, alpha)
-
-    print "EVAL TABLE SUMMARY"
-    print "Layers:", len(all_layers)
-    print "Distinct:", len(distinct_layers)
-    print "Tensors:", len(anonvar_to_name)
-    print "Weights:", tot_num_elements
-    print "Hyper Parameters:", hyperparameters
+    print "Metrics"
     print "Precision:", len(anonvar_to_name), "/", len(anonvar_to_name) + false_positives, "=", float(len(anonvar_to_name)) / float(len(anonvar_to_name) + false_positives)
     print "Python Objects:", recovered_python_objects
     print "C Structs:", recovered_c_structs
 
 
-def is_model(found_object, class_names):
-    model_name = found_object.ob_type.dereference().name
-    if model_name in class_names:
-        return True
-    elif model_name == "FuncGraph" and found_object.in_dict.dereference().val['name'] == "signature_wrapper":
-        return True
-    else:
-        return False
+def is_key(found_object, class_names):
+    key_name = found_object.ob_type.dereference().name
+    return key_name in class_names
 
 
-def traverse_gc(task, addr_space, obj_type_string, start, stop, class_names, export_path, alpha):
+def traverse_gc(task, addr_space, obj_type_string, start, stop, class_names):
     """
     Traverses the garbage collector generation (doubly linked list)
-    Searches for model root
+    Searches for key root structure
     """
     tmp = start
     
     global recovered_python_objects
+    
+    ct = 0
 
     while True:
         found_head = obj.Object("_PyGC_Head", offset=tmp, vm=addr_space)
@@ -1295,9 +992,11 @@ def traverse_gc(task, addr_space, obj_type_string, start, stop, class_names, exp
         print "curr:", hex(tmp), "next:", hex(found_head.next_val), "prev:", hex(found_head.prev_val)
         print found_object.ob_type.dereference().name
         
-        if is_model(found_object, class_names):
+        if is_key(found_object, class_names):
             print "Found", found_object.ob_type.dereference().name, "at", hex(found_object.obj_offset)
-            process_parameters(task, addr_space, found_object, export_path, alpha)
+            key_dict = found_object.in_dict.dereference().val
+            print (key_dict)
+            
             return True
         
         if (tmp == stop):
@@ -1320,7 +1019,7 @@ def find_PyRuntime():
     return -1
 
 
-def find_model(task, class_names, export_path, alpha):
+def find_keys(task, class_names):
     """
     Go to _PyRuntimeState -> gc -> generations
     Traverse PyGC_Head pointers
@@ -1345,35 +1044,39 @@ def find_model(task, class_names, export_path, alpha):
         print "Not _PyRuntimeState"
         sys.exit(0)
     
+    found_object = obj.Object("_PyByteObject1",
+                                    offset=0x7ffff53ed9d0,
+                                    vm=addr_space)
+    print found_object.val
+
+    found_object = obj.Object("_PyByteObject1",
+                                    offset=0x7ffff5441580,
+                                    vm=addr_space)
+    print found_object.val
+
     if (traverse_gc(task=task, 
             addr_space=addr_space,
             obj_type_string="_PyGC_Head",
             start=pyruntime.gen1_next,
             stop=pyruntime.gen1_prev,
-           class_names=class_names,
-           export_path=export_path,
-           alpha=alpha)):
+           class_names=class_names)):
            return
     if (traverse_gc(task=task, 
             addr_space=addr_space,
             obj_type_string="_PyGC_Head",
             start=pyruntime.gen2_next,
             stop=pyruntime.gen2_prev,
-            class_names=class_names,
-            export_path=export_path,
-            alpha=alpha)):
+            class_names=class_names)):
             return
     if (traverse_gc(task=task, 
             addr_space=addr_space,
             obj_type_string="_PyGC_Head",
             start=pyruntime.gen3_next,
             stop=pyruntime.gen3_prev,
-            class_names=class_names,
-            export_path=export_path,
-            alpha=alpha)):
+            class_names=class_names)):
             return
     
-    print "Model Root not found"
+    print "Keys not found"
     return
 
 
@@ -1407,9 +1110,9 @@ def _is_python_task(task, pidstr):
         return True
 
 
-class mnist_weights(linux_pslist.linux_pslist):
+class block_busters(linux_pslist.linux_pslist):
     """
-    Recovers Tensorflow model attributes from a Python process.
+    Recovers critical crypto wallet data from Python's pyca/cryptography library.
     Includes VType definitions.
     """
     def __init__(self, config, *args, **kwargs):
@@ -1438,12 +1141,8 @@ class mnist_weights(linux_pslist.linux_pslist):
             if _is_python_task(task, pidstr):
                 tasks.append(task)
 
-        alpha = 0.06
-        export_path = './volatility_dumps/block_mobilenetv1/'
-
         for task in tasks:
-            find_model(task, ["Sequential"], export_path, alpha)
-            dump_heaps(task, export_path, alpha)
+            find_keys(task, ["_EllipticCurvePublicKey", "_EllipticCurvePrivateKey"])
 
         stop = timeit.default_timer()
         print("\nRuntime: {0} seconds".format(stop - start))
